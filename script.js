@@ -1,4 +1,3 @@
-// DOM Elements
 const fileInput = document.getElementById('pdf-file');
 const loadButton = document.getElementById('load-pdf');
 const dropZone = document.getElementById('drop-zone');
@@ -14,16 +13,13 @@ const progressText = document.querySelector('.progress-text');
 const progressPercent = document.querySelector('.progress-percent');
 const pagePreview = document.getElementById('page-preview');
 
-// State variables
 let loadedPdfDoc = null;
 let pdfJsDoc = null;
 let selectedPages = new Set();
 
-// Event Listeners
 loadButton.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileSelect);
 
-// Drag and Drop functionality
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, preventDefaults, false);
 });
@@ -41,7 +37,6 @@ dropZone.addEventListener('drop', handleDrop, false);
 previewButton.addEventListener('click', previewSelectedPages);
 splitButton.addEventListener('click', splitPdf);
 
-// Functions
 function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -77,18 +72,15 @@ async function handleFileSelect() {
     showProgress('Loading PDF...');
     
     try {
-        // Load with PDF.js for preview
         const arrayBuffer = await file.arrayBuffer();
         pdfJsDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
         
-        // Load with PDF-lib for processing
         loadedPdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
         
         const totalPages = loadedPdfDoc.getPageCount();
         totalPagesSpan.textContent = totalPages;
         pageSelection.style.display = 'block';
         
-        // Reset previous selections
         pagesInput.value = '';
         selectedPages.clear();
         pagePreview.innerHTML = '';
@@ -112,13 +104,11 @@ async function previewSelectedPages() {
         const totalPages = loadedPdfDoc.getPageCount();
         const pageRanges = parsePageRanges(pagesInput.value, totalPages);
         
-        // Clear previous preview
         pagePreview.innerHTML = '';
         selectedPages = new Set(pageRanges);
         
         showProgress('Generating preview...');
         
-        // Render thumbnails for selected pages
         for (const pageNum of pageRanges) {
             const page = await pdfJsDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 0.2 });
@@ -141,7 +131,6 @@ async function previewSelectedPages() {
             `;
             thumbnail.querySelector('canvas').getContext('2d').drawImage(canvas, 0, 0);
             
-            // Add click handler to toggle selection
             thumbnail.addEventListener('click', () => togglePageSelection(pageNum, thumbnail));
             
             pagePreview.appendChild(thumbnail);
@@ -163,7 +152,6 @@ function togglePageSelection(pageNum, element) {
         element.classList.add('selected');
     }
     
-    // Update the input field
     pagesInput.value = Array.from(selectedPages).sort((a, b) => a - b).join(',');
 }
 
@@ -210,7 +198,6 @@ async function splitPdf() {
         const totalPages = loadedPdfDoc.getPageCount();
         let pageRanges;
         
-        // Use either the input field or the selected thumbnails
         if (selectedPages.size > 0) {
             pageRanges = Array.from(selectedPages);
         } else {
@@ -230,7 +217,6 @@ async function splitPdf() {
             const [page] = await newPdfDoc.copyPages(loadedPdfDoc, [pageIndex - 1]);
             newPdfDoc.addPage(page);
             
-            // Update progress
             processed++;
             const progress = Math.round((processed / pageRanges.length) * 100);
             updateProgress(progress);
@@ -309,13 +295,11 @@ function showAlert(message, type) {
     alertMessage.className = `alert ${type}`;
     alertMessage.style.display = 'block';
     
-    // Hide after 5 seconds
     setTimeout(() => {
         alertMessage.style.display = 'none';
     }, 5000);
 }
 
-// Clean up resources when page is unloaded
 window.addEventListener('beforeunload', () => {
     if (loadedPdfDoc) {
         loadedPdfDoc.cleanup();
